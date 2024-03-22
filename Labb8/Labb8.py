@@ -7,85 +7,97 @@ from linkedQFile import LinkedQ
 
 """
 
-class GrammatikFel(Exception):
+class Grammatik_fel(Exception):
     pass # Läs sedan vad det här är och vad det betyder?
 
 
 
-def kontrolleraMolekyl(molekyl):
-    kontrolleraAtom(molekyl)
+def kontrollera_molekyl(molekyl):
+    kontrollera_atom(molekyl)
     if molekyl.peek() == ".":
         molekyl.dequeue()
     else:
-        kontrolleraNummer(molekyl)
+        kontrollera_nummer(molekyl)
 
-    
 
-def kontrolleraAtom(molekyl):
-    kontrolleraStorBokstav(molekyl)
+def kontrollera_atom(molekyl):
+    # atomer bör stå på form Xx12 där X är stor bokstav, x är liten bokstav och 12 är ett nummer
+    kontrollera_stor_bokstav(molekyl)
     if molekyl.peek().isalpha():
-        kontrolleraLitenBokstav(molekyl)
-    
+        kontrollera_liten_bokstav(molekyl)
         
 
-def kontrolleraStorBokstav(molekyl):
-    storBokstav = molekyl.dequeue()
-    if storBokstav.isupper():
+def kontrollera_stor_bokstav(molekyl):
+    # Kontrollera att det är en stor bokstav
+    stor_bokstav = molekyl.peek()
+    if stor_bokstav.isupper():
+        molekyl.dequeue()
         return
-    raise GrammatikFel("Fel alla molekyler måste börja med stor bokstav: " + storBokstav)
+    atom_str = ""
+    while molekyl.peek()!= ".":
+        atom_str += molekyl.dequeue()
+    raise Grammatik_fel("Saknad stor bokstav vid radslutet " + atom_str)
 
-def kontrolleraLitenBokstav(molekyl):
-    litenBokstav = molekyl.dequeue()
-    if litenBokstav.islower():
+
+def kontrollera_liten_bokstav(molekyl):
+    # Kontrollera att det är en liten bokstav
+    liten_bokstav = molekyl.dequeue()
+    if liten_bokstav.islower():
         return
-    raise GrammatikFel("Fel alla andra bokstäver måste vara liten: " + litenBokstav)
+    raise Grammatik_fel("Fel alla andra bokstäver måste vara gemener: " + liten_bokstav)
 
-def kontrolleraNummer(molekyl):
+
+def kontrollera_nummer(molekyl):
     # Jag förstår inte riktigt men jag tror att det kan lösa sig senare.
     nr_str = ""
-    while molekyl.peek() != ".":
+    while molekyl.peek() != "." and molekyl.peek().isdigit():
         char = molekyl.dequeue()
         nr_str += char
     num = int(nr_str)
-    if num > 1:
+    if num > 1 and nr_str[0] != "0":
         return    
-    raise GrammatikFel("för litet tal vid radslutet" + str(num))
+    raise Grammatik_fel("För litet tal vid radslutet " + nr_str[1:])
         
     
 
-def kollaGrammatiken(molekyl):
-    molekyl = bryt_Ned_Molekyl(molekyl)
+def kolla_grammatiken(molekyl):
+    molekyl = bryt_ned_molekyl(molekyl)
     
     try:
-        kontrolleraMolekyl(molekyl)
-        return "Följer vår syntax"
-    except GrammatikFel as fel:
+        kontrollera_molekyl(molekyl)
+        return "Formeln är syntaktiskt korrekt"
+    except Grammatik_fel as fel:
         return str(fel)
 
-def bryt_Ned_Molekyl(molekyl):
+def bryt_ned_molekyl(molekyl):
     q = LinkedQ()
     for char in molekyl: # Iterera över varje tecken
         q.enqueue(char)
-    q.enqueue(".")
+    q.enqueue(".") # Lägg till en punkt i slutet som markerar slutet på molekylen
     return q
 
 def main():
-    molekyl = input("Skriv ditt MolekylNamn: ")
-    resultat = kollaGrammatiken(molekyl)
-    print(resultat)
+    while True:
+        molekyl = input()
+        if molekyl != "#":
+            resultat = kolla_grammatiken(molekyl)
+            print(resultat)
+        else:
+            break
 
-import unittest
 
-
+"""import unittest
 class SyntaxTest(unittest.TestCase):
     
     # Testet fungerar på det sättet att du skriver given input och förklarar vad som ska komma ut från det
     def testSubjmolekyl(self):
-        self.assertEqual(kollaGrammatiken("He25"), "Följer vår syntax")
+        self.assertEqual(kolla_grammatiken("He25"), "Följer vår syntax")
 
     def testFelmolekyl(self):
-        self.assertEqual(kollaGrammatiken("HE25"), "Fel alla andra bokstäver måste vara liten: E")
+        self.assertEqual(kolla_grammatiken("HE25"), "Fel alla andra bokstäver måste vara liten: E")
 
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main() """
 
+
+main()
